@@ -56,7 +56,7 @@ enum Scene {
 	QUIT
 } scene;
 #pragma endregion
-
+#pragma region struct
 typedef struct Obj {
 	int x;
 	int y;
@@ -70,6 +70,7 @@ typedef struct Block {
 	const char* shape[4][4];
 	Color color;
 };
+#pragma endregion
 #pragma region Winapi
 void MoveXY(int x, int y);
 void ChangeColor(int color);
@@ -110,6 +111,7 @@ int mainIndex = 0;
 int nextIndex = 0;
 int nextblock, mainblock, holdblock;
 int holdIndex = 0;
+int blockX = 0, blockY = 0, blockShape = 0;
 void GameInitialize() {
 	for (int i = 0; i < BlockCount; i++) {
 		blocks[i] = (Block*)malloc(sizeof(Block));
@@ -122,12 +124,32 @@ void GameInitialize() {
 	blocks[0]->shape[1][1] = "  ■    ";
 	blocks[0]->shape[1][2] = "  ■    ";
 	blocks[0]->shape[1][3] = "  ■    ";
+	blocks[0]->shape[2][0] = "        ";
+	blocks[0]->shape[2][1] = "        ";
+	blocks[0]->shape[2][2] = "■■■■";
+	blocks[0]->shape[2][3] = "        ";
+	blocks[0]->shape[3][0] = "  ■    ";
+	blocks[0]->shape[3][1] = "  ■    ";
+	blocks[0]->shape[3][2] = "  ■    ";
+	blocks[0]->shape[3][3] = "  ■    ";
 	blocks[0]->color = LIGHTCYAN;
 
 	blocks[1]->shape[0][0] = "        ";
 	blocks[1]->shape[0][1] = "  ■■  ";
 	blocks[1]->shape[0][2] = "  ■■  ";
 	blocks[1]->shape[0][3] = "        ";
+	blocks[1]->shape[1][0] = "        ";
+	blocks[1]->shape[1][1] = "  ■■  ";
+	blocks[1]->shape[1][2] = "  ■■  ";
+	blocks[1]->shape[1][3] = "        ";
+	blocks[1]->shape[2][0] = "        ";
+	blocks[1]->shape[2][1] = "  ■■  ";
+	blocks[1]->shape[2][2] = "  ■■  ";
+	blocks[1]->shape[2][3] = "        ";
+	blocks[1]->shape[3][0] = "        ";
+	blocks[1]->shape[3][1] = "  ■■  ";
+	blocks[1]->shape[3][2] = "  ■■  ";
+	blocks[1]->shape[3][3] = "        ";
 	blocks[1]->color = YELLOW;
 
 	blocks[2]->shape[0][0] = "        ";
@@ -156,6 +178,14 @@ void GameInitialize() {
 	blocks[3]->shape[1][1] = "  ■    ";
 	blocks[3]->shape[1][2] = "■■    ";
 	blocks[3]->shape[1][3] = "■      ";
+	blocks[3]->shape[2][0] = "        ";
+	blocks[3]->shape[2][1] = "■■    ";
+	blocks[3]->shape[2][2] = "  ■■  ";
+	blocks[3]->shape[2][3] = "        ";
+	blocks[3]->shape[3][0] = "        ";
+	blocks[3]->shape[3][1] = "  ■    ";
+	blocks[3]->shape[3][2] = "■■    ";
+	blocks[3]->shape[3][3] = "■      ";
 	blocks[3]->color = RED;
 
 	blocks[4]->shape[0][0] = "        ";
@@ -166,6 +196,14 @@ void GameInitialize() {
 	blocks[4]->shape[1][1] = "■      ";
 	blocks[4]->shape[1][2] = "■■    ";
 	blocks[4]->shape[1][3] = "  ■    ";
+	blocks[4]->shape[2][0] = "        ";
+	blocks[4]->shape[2][1] = "  ■■  ";
+	blocks[4]->shape[2][2] = "■■    ";
+	blocks[4]->shape[2][3] = "        ";
+	blocks[4]->shape[3][0] = "        ";
+	blocks[4]->shape[3][1] = "■      ";
+	blocks[4]->shape[3][2] = "■■    ";
+	blocks[4]->shape[3][3] = "  ■    ";
 	blocks[4]->color = GREEN;
 
 	blocks[5]->shape[0][0] = "        ";
@@ -216,12 +254,12 @@ void GameRender() {
 	}
 	if (mainIndex != 0) {
 		for (int i = 0; i < 4; i++) {
-			WriteBuffer(30, 10 + i, blocks[mainblock]->shape[0][i], blocks[mainblock]->color);
+			WriteBuffer(30 + blockX, 10 + blockY + i, blocks[mainblock]->shape[blockShape][i], blocks[mainblock]->color);
 		}
 	}
 	if (nextIndex != 0) {
 		for (int i = 0; i < 4; i++) {
-			WriteBuffer(38, 10 + i, blocks[nextblock]->shape[0][i], blocks[nextblock]->color);
+			WriteBuffer(37, 10 + i, blocks[nextblock]->shape[0][i], blocks[nextblock]->color);
 		}
 	}
 	for (int y = 0; y < 21; y++) {
@@ -236,16 +274,19 @@ void GameRender() {
 		}
 	}
 }
+void GameWallBlock(int a, int b) {
+	
+}
 void GameProgress() {
 	srand((unsigned)time(NULL));
-	if (nextIndex == 0) {
-		nextblock = rand() % 7;
-		nextIndex++;
-	}
 	if (mainIndex == 0) {
 		mainblock = nextblock;
 		mainIndex++;
 		nextIndex--;
+	}
+	if (nextIndex == 0) {
+		nextblock = rand() % 7;
+		nextIndex++;
 	}
 	if (GetAsyncKeyState(VK_SHIFT)) {
 		if (holdIndex == 0) {
@@ -262,6 +303,161 @@ void GameProgress() {
 	}
 	if (GetAsyncKeyState(VK_BACK)) {
 		scene = START;
+	}
+	if (GetAsyncKeyState(VK_LEFT)) {
+		blockX--;
+		switch (mainblock) { // 블럭종류
+		case 0: 
+			switch (blockShape) { // 블럭방향
+			case 0:
+			case 2:
+				if (map[12 + blockY][30 + blockX] == 1) {
+					blockX++;
+				}
+				break;
+			case 1:
+			case 3:
+				if (map[10 + blockY][31 + blockX] == 1 || map[11 + blockY][31 + blockX] == 1 ||
+					map[12 + blockY][31 + blockX] == 1 || map[13 + blockY][31 + blockX] == 1) {
+					blockX++;
+				}
+				break;
+			}
+			break;
+		case 1:  // 네모
+			if (map[11 + blockY][31 + blockX] == 1 || map[12 + blockY][31 + blockX] == 1) {
+				blockX++;
+			}
+			break;
+		case 2:  // T
+			switch (blockShape) {
+			case 0:
+				if (map[31 + blockX][11 + blockY] == 1 || map[30 + blockX][12 + blockY] == 1) {
+					blockX++;
+				}
+				break;
+			case 1:
+				if (map[31 + blockX][11 + blockY] == 1 || map[30 + blockX][12 + blockY] == 1 || map[31 + blockX][13 + blockY] == 1) {
+					blockX++;
+				}
+				break;
+			case 2:
+				if (map[30 + blockX][12 + blockY] == 1 || map[31 + blockX][13 + blockY] == 1) {
+					blockX++;
+				}
+				break;
+			case 3:
+				if (map[31 + blockX][11 + blockY] == 1 || map[31 + blockX][12 + blockY] == 1 || map[31 + blockX][13 + blockY] == 1) {
+					blockX++;
+				}
+				break;
+			default:
+				break;
+			}
+			break;
+		case 3:  // 왼쪽지그
+			switch (blockShape) {
+			case 0:
+			case 2:
+				if (map[30 + blockX][11 + blockY] == 1 || map[31 + blockX][12 + blockY] == 1) {
+					blockX++;
+				}
+				break;
+			case 1:
+			case 3:
+				if (map[31 + blockX][11 + blockY] == 1 || map[30 + blockX][12 + blockY] == 1 || map[30 + blockX][13 + blockY] == 1) {
+					blockX++;
+				}
+				break;
+			default:
+				break;
+			}
+			break;
+		case 4:  // 오른쪽
+			switch (blockShape) {
+			case 0:
+			case 2:
+				if (map[31 + blockX][11 + blockY] == 1 || map[30 + blockX][12 + blockY] == 1) {
+					blockX++;
+				}
+				break;
+			case 1:
+			case 3:
+				if (map[30 + blockX][11 + blockY] == 1 || map[30 + blockX][12 + blockY] == 1 || map[31 + blockX][13 + blockY] == 1) {
+					blockX++;
+				}
+				break;
+			default:
+				break;
+			}
+			break;
+		case 5:  // 7
+			switch (blockShape) {
+			case 0:
+				if (map[30 + blockX][11 + blockY] == 1 || map[31 + blockX][12 + blockY] == 1 || map[31 + blockX][13 + blockY] == 1) {
+					blockX++;
+				}
+				break;
+			case 1:
+				if (map[30 + blockX][11 + blockY] == 1 || map[30 + blockX][12 + blockY] == 1) {
+					blockX++;
+				}
+				break;
+			case 2: 
+				if (map[30 + blockX][11 + blockY] == 1 || map[30 + blockX][12 + blockY] == 1 || map[30 + blockX][13 + blockY] == 1) {
+					blockX++;
+				}
+				break;
+			case 3:
+				if (map[32 + blockX][11 + blockY] == 1 || map[30 + blockX][12 + blockY] == 1) {
+					blockX++;
+				}
+				break;
+			default:
+				break;
+			}
+			break;
+		case 6:  // 7거꾸로
+			switch (blockShape) {
+			case 0:
+				if (map[30 + blockX][11 + blockY] == 1 || map[30 + blockX][12 + blockY] == 1 || map[30 + blockX][13 + blockY] == 1) {
+					blockX++;
+				}
+				break;
+			case 1:
+				if (map[30 + blockX][11 + blockY] == 1 || map[30 + blockX][12 + blockY] == 1) {
+					blockX++;
+				}
+				break;
+			case 2:
+				if (map[31 + blockX][11 + blockY] == 1 || map[31 + blockX][12 + blockY] == 1 || map[30 + blockX][13 + blockY] == 1) {
+					blockX++;
+				}
+				break;
+			case 3:
+				if (map[32 + blockX][11 + blockY] == 1 || map[30 + blockX][12 + blockY] == 1) {
+					blockX++;
+				}
+				break;
+			default:
+				break;
+			}
+			break;
+		default:
+			break;
+		}
+	}
+	if (GetAsyncKeyState(VK_RIGHT)) {
+		blockX++;
+	}
+	if (GetAsyncKeyState(VK_DOWN)) {
+		blockY++;
+	}
+	if (GetAsyncKeyState(VK_UP)) {
+		blockShape++;
+		if (blockShape > 3) {
+			blockShape = 0;
+		}
 	}
 }
 void GameRelease() {
